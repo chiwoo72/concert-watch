@@ -745,7 +745,7 @@
     "phonePending": false
   },
   "wc4a1": {
-    "everAvailable": false,
+    "everAvailable": true,
     "failCount": 0,
     "lastState": "soldout",
     "openNoticeSent": false,
