@@ -8,6 +8,7 @@
 - state.json : 판매 상태·발견 기록. 변경 시 워크플로가 커밋.
 - 휴대폰 방해금지 01:30~06:40(KST): 보류했다가 끝난 뒤 남아 있으면 알림.
 """
+import difflib
 import json
 import os
 import re
@@ -73,8 +74,9 @@ def app_link(url):
     return "nol-app://wv?url=" + urllib.parse.quote(web, safe="")
 
 
-def notify(title, message, url=None, urgent=False):
-    """보냈으면 True, 방해금지 시간이라 생략했으면 False."""
+def notify(title, message, url=None, urgent=False, sac=None):
+    """보냈으면 True, 방해금지 시간이라 생략했으면 False.
+    sac(예술의전당 공연 페이지)가 있으면 그것을 기본 링크로, 예매처 앱은 보조 버튼으로."""
     topic = os.environ.get("NTFY_TOPIC")
     if is_quiet():
         print(f"[방해금지 - 생략] {title} | {message}")
@@ -84,7 +86,12 @@ def notify(title, message, url=None, urgent=False):
         return True
     body = {"topic": topic, "title": title, "message": message[:3500],
             "priority": 5 if urgent else 3, "tags": ["cloud", "musical_note"]}
-    if url:
+    if sac:
+        app = app_link(url) if url else None
+        body["click"] = sac
+        body["actions"] = [{"action": "view", "label": "예술의전당 예매", "url": sac}] + \
+                          ([{"action": "view", "label": "NOL 앱", "url": app}] if app else [])
+    elif url:
         app = app_link(url)
         body["click"] = app or url
         body["actions"] = ([{"action": "view", "label": "앱으로 예매", "url": app}] if app else []) +                           [{"action": "view", "label": "웹으로 열기" if app else "예매하기", "url": url}]
@@ -182,7 +189,7 @@ def build_watches(d, artist, rules):
         "keyword": artist, "kopisId": d["mt20id"], "source": "auto",
         "concertDate": date_to.strftime("%Y-%m-%d 23:00"), "openAt": None,
         "limit": rules["limit"], "qty": rules["qty"], "minPrice": min_price(d.get("pcseguidance")),
-        "instant": rules["instant"],
+        "instant": rules["instant"], "venue": d.get("fcltynm", ""), "sacTitle": d["prfnm"],
     }
     label = f"[{region} {date_from:%m/%d}] {d['prfnm']}"
     watches, ok, ng = [], [], []
@@ -236,6 +243,12 @@ def discover(rules, state, auto, now):
         when = f"{d.get('prfpdfrom')} {d.get('fcltynm')}"
         first_url = d["relates"][0]["url"] if d["relates"] else \
             f"https://www.kopis.or.kr/por/db/pblprfr/pblprfrView.do?menuId=MNU_00020&mt20Id={pid}"
+        if "예술의전당" in d.get("fcltynm", ""):   # 아내가 예매하는 예술의전당 페이지로 연결
+            m = sac_match(d.get("prfpdfrom", ""), d.get("prfnm", ""), artist)
+            if m:
+                first_url = SAC_SHOW.format(m["SN"])
+                when += f" · 예술의전당 {m.get('SALE_STATE_CODE_NAME', '')}" + (
+                    f"(오픈 {m['TICKET_OPEN_DATE']})" if m.get("TICKET_OPEN_DATE") else "")
         if artist:
             watches, ok, ng = build_watches(d, artist, rules)
             existing = {w["id"] for w in auto}
@@ -315,6 +328,86 @@ def discover(rules, state, auto, now):
     disc["known"] = {k: v for k, v in known.items() if v.get("end", "9") >= today}
 
 
+# ── 예술의전당 (아내가 예매하는 사이트) ─────────────────
+SAC_LIST = "https://www.sac.or.kr/site/main/program/getProgramCalList"
+SAC_SHOW = "https://www.sac.or.kr/site/main/show/show_view?SN={}"
+_sac_cache = {}
+
+
+def sac_month(year, month):
+    """예술의전당 음악당 월간 일정 (SN·공연명·날짜·판매상태·오픈일). 실행당 캐시."""
+    key = (year, month)
+    if key not in _sac_cache:
+        last = (datetime(year + month // 12, month % 12 + 1, 1) - timedelta(days=1)).day
+        data = urllib.parse.urlencode({"searchYear": year, "searchMonth": month, "searchFirstDay": 1,
+                                       "searchLastDay": last, "CATEGORY_PRIMARY": 2}).encode()
+        req = urllib.request.Request(SAC_LIST, data=data, headers={"User-Agent": UA})
+        try:
+            with urllib.request.urlopen(req, timeout=30) as res:
+                days = json.loads(res.read().decode("utf-8"))
+            _sac_cache[key] = [p for v in days.values() if isinstance(v, list) for p in v if isinstance(p, dict)]
+        except Exception as e:
+            print(f"예술의전당 일정 실패 {year}-{month}: {e}")
+            _sac_cache[key] = None
+    return _sac_cache[key]
+
+
+def sac_match(date_str, title, keyword=None):
+    """공연일(YYYY.MM.DD)·공연명(·연주자)으로 예술의전당 공연 찾기 → dict, 없으면 None, 조회 실패면 False."""
+    d = datetime.strptime(date_str, "%Y.%m.%d")
+    progs = sac_month(d.year, d.month)
+    if progs is None:
+        return False
+    cands = [p for p in progs if p.get("BEGIN_DATE", "") <= date_str <= p.get("END_DATE", p.get("BEGIN_DATE", ""))]
+    t = norm(re.sub(r"\[.*?\]|\(.*?\)", "", title))
+    kw = norm(keyword)
+
+    def score(p):
+        subj = norm(p.get("PROGRAM_SUBJECT"))
+        return (1 if kw and kw in subj else 0) + difflib.SequenceMatcher(None, t, subj).ratio()
+
+    best = max(cands, key=score, default=None)
+    return best if best and score(best) >= 0.5 else None
+
+
+def attach_sac(items, state):
+    """예술의전당 공연이면 sac(공연 페이지)를 붙인다. state['_sac'] 에 캐시 (못 찾으면 하루 뒤 재시도)."""
+    cache = state.setdefault("_sac", {})
+    today = datetime.now(KST).strftime("%Y-%m-%d")
+    for it in items:
+        text = it.get("venue", "") + it.get("title", "")
+        if "예술의전당" not in text and "예당" not in text:
+            continue
+        c = cache.get(it["id"])
+        if not c or (not c.get("sn") and c.get("checked") != today):
+            date = (it.get("concertDate") or "")[:10].replace("-", ".")
+            m = sac_match(date, it.get("sacTitle") or it["title"], it.get("keyword")) if date else None
+            if m is False:
+                continue
+            c = cache[it["id"]] = {"sn": m["SN"] if m else None, "checked": today}
+        if c.get("sn"):
+            it["sac"] = SAC_SHOW.format(c["sn"])
+
+
+def check_sac_open(items, state):
+    """예술의전당 판매 상태가 '예정' → '예매' 로 바뀌면 오픈 알림."""
+    seen = state.setdefault("_sacState", {})
+    for it in items:
+        sn = (state.get("_sac", {}).get(it["id"]) or {}).get("sn")
+        date = (it.get("concertDate") or "")[:10]
+        if not sn or not date:
+            continue
+        p = next((x for x in sac_month(int(date[:4]), int(date[5:7])) or [] if x.get("SN") == sn), None)
+        if not p:
+            continue
+        cur, prev = p.get("SALE_STATE_CODE_NAME", ""), seen.get(str(sn))
+        if prev == "예정" and cur == "예매":
+            notify(f"예술의전당 예매 오픈! {p['PROGRAM_SUBJECT']}",
+                   f"{p['BEGIN_DATE']} {p.get('PROGRAM_PLAYTIME', '')} {p.get('PLACE_NAME', '')}",
+                   it.get("url"), it.get("instant", False), sac=SAC_SHOW.format(sn))
+        seen[str(sn)] = cur
+
+
 # ── 판매 감시 ─────────────────────────────────────────
 def limit_note(it):
     if not it.get("minPrice"):
@@ -348,7 +441,7 @@ def check_sales(items, state, now, recheck=()):
             if over:
                 notify("[클라우드] 한도 초과 - 오픈 알림 생략", f"{it['title']} · {note}")
             else:
-                notify(f"[클라우드] 곧 예매 오픈 {open_at:%H:%M}", f"{it['title']} · {note}", it["url"], it.get("instant", False))
+                notify(f"[클라우드] 곧 예매 오픈 {open_at:%H:%M}", f"{it['title']} · {note}", it["url"], it.get("instant", False), it.get("sac"))
 
         if not it.get("availablePattern"):
             continue
@@ -393,12 +486,12 @@ def check_sales(items, state, now, recheck=()):
                 notify("[클라우드] 예매 가능하지만 한도 초과", f"{it['title']} · {note}", it["url"])
             else:
                 head = "취소표 발생!" if st["everAvailable"] else "예매 가능(오픈·잔여석)!"
-                if not notify(f"[클라우드] {head} {it['title']}", f"남은 좌석: {seats}" if seats else note, it["url"], it.get("instant", False)):
+                if not notify(f"[클라우드] {head} {it['title']}", f"남은 좌석: {seats}" if seats else note, it["url"], it.get("instant", False), it.get("sac")):
                     st["phonePending"] = True   # 방해금지 시간 → 끝난 뒤 남아 있으면 알림
         # 방해금지 시간에 생긴 취소표가 끝난 뒤에도 남아 있으면 한 번 알림
         if st["phonePending"] and not quiet:
             if cur == "available":
-                notify(f"[클라우드] 새벽에 생긴 취소표, 아직 예매 가능 {it['title']}", f"남은 좌석: {seats}" if seats else note, it["url"], it.get("instant", False))
+                notify(f"[클라우드] 새벽에 생긴 취소표, 아직 예매 가능 {it['title']}", f"남은 좌석: {seats}" if seats else note, it["url"], it.get("instant", False), it.get("sac"))
             if cur != "unknown":
                 st["phonePending"] = False
         if cur == "soldout":
@@ -429,7 +522,18 @@ def main():
     # 지난 공연은 자동 목록에서 제거, 수동 감시와 같은 주소는 중복 확인하지 않음
     auto = [w for w in auto if not parse_dt(w.get("concertDate")) or now <= parse_dt(w["concertDate"]) + timedelta(days=1)]
     manual_urls = {w.get("checkUrl") for w in manual}
+    # 예전에 자동 등록된 항목은 공연장 정보가 없어 예술의전당 여부를 모름 → KOPIS 에서 한 번 채움
+    if os.environ.get("KOPIS_KEY"):
+        for w in auto:
+            if "venue" not in w and w.get("kopisId"):
+                try:
+                    d = kopis_detail(w["kopisId"])
+                    w["venue"], w["sacTitle"] = d.get("fcltynm", ""), d.get("prfnm", "")
+                except Exception as e:
+                    print(f"공연장 정보 실패 {w['kopisId']}: {e}")
     items = manual + [w for w in auto if w.get("checkUrl") not in manual_urls]
+    attach_sac(items, state)
+    check_sac_open(items, state)
     check_sales(items, state, now, tuple(rules.get("recheckKeywords", [])))
 
     ids = {it["id"] for it in manual + auto}
@@ -448,6 +552,8 @@ def main():
         time.sleep(step)
         now = datetime.now(KST)
         print(f"-- 집중 감시 {now:%H:%M}")
+        _sac_cache.clear()
+        check_sac_open(focus, state)
         check_sales(focus, state, now, tuple(rules.get("recheckKeywords", [])))
         save("state.json", state)
 
