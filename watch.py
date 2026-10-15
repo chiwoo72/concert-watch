@@ -86,11 +86,9 @@ def notify(title, message, url=None, urgent=False, sac=None):
         return True
     body = {"topic": topic, "title": title, "message": message[:3500],
             "priority": 5 if urgent else 3, "tags": ["cloud", "musical_note"]}
-    if sac:
-        app = app_link(url) if url else None
+    if sac:   # 예술의전당 공연은 예술의전당에서만 예매 (사용자 요청) — 다른 예매처 링크는 넣지 않음
         body["click"] = sac
-        body["actions"] = [{"action": "view", "label": "예술의전당 예매", "url": sac}] + \
-                          ([{"action": "view", "label": "NOL 앱", "url": app}] if app else [])
+        body["actions"] = [{"action": "view", "label": "예술의전당 예매", "url": sac}]
     elif url:
         app = app_link(url)
         body["click"] = app or url
@@ -245,6 +243,7 @@ def discover(rules, state, auto, now):
             f"https://www.kopis.or.kr/por/db/pblprfr/pblprfrView.do?menuId=MNU_00020&mt20Id={pid}"
         if "예술의전당" in d.get("fcltynm", ""):   # 아내가 예매하는 예술의전당 페이지로 연결
             m = sac_match(d.get("prfpdfrom", ""), d.get("prfnm", ""), artist)
+            first_url = SAC_SCHEDULE   # 공연 페이지를 못 찾아도 다른 예매처로 보내지 않음
             if m:
                 first_url = SAC_SHOW.format(m["SN"])
                 when += f" · 예술의전당 {m.get('SALE_STATE_CODE_NAME', '')}" + (
@@ -331,6 +330,7 @@ def discover(rules, state, auto, now):
 # ── 예술의전당 (아내가 예매하는 사이트) ─────────────────
 SAC_LIST = "https://www.sac.or.kr/site/main/program/getProgramCalList"
 SAC_SHOW = "https://www.sac.or.kr/site/main/show/show_view?SN={}"
+SAC_SCHEDULE = "https://www.sac.or.kr/site/main/program/schedule?tab=1"
 _sac_cache = {}
 
 
@@ -382,11 +382,12 @@ def attach_sac(items, state):
         if not c or (not c.get("sn") and c.get("checked") != today):
             date = (it.get("concertDate") or "")[:10].replace("-", ".")
             m = sac_match(date, it.get("sacTitle") or it["title"], it.get("keyword")) if date else None
-            if m is False:
-                continue
-            c = cache[it["id"]] = {"sn": m["SN"] if m else None, "checked": today}
-        if c.get("sn"):
-            it["sac"] = SAC_SHOW.format(c["sn"])
+            if m is False:   # 예술의전당 일정 조회 실패 → 이번에는 일정 페이지로
+                c = c or {}
+            else:
+                c = cache[it["id"]] = {"sn": m["SN"] if m else None, "checked": today}
+        # 공연 페이지를 아직 못 찾았어도 예술의전당 공연이면 예술의전당 일정 페이지로 (다른 예매처로 보내지 않음)
+        it["sac"] = SAC_SHOW.format(c["sn"]) if c.get("sn") else SAC_SCHEDULE
 
 
 def check_sac_open(items, state):
@@ -423,10 +424,52 @@ def seat_summary(page):
     return ", ".join(dict.fromkeys(seats))   # 롯데콘서트홀 페이지는 같은 회차 정보가 두 번 들어 있어 중복 제거
 
 
-def check_sales(items, state, now, recheck=()):
+def seat_counts(page):
+    """등급별 남은 좌석 수 {등급: 수} — 인터파크 remainCnt / 롯데콘서트홀 BookableCount."""
+    counts = {}
+    for g, n in re.findall(r'"seatGradeName":"([^"]*)","remainCnt":(\d+)', page):
+        counts[g] = max(counts.get(g, 0), int(n))
+    for n, g in re.findall(r'"BookableCount":(\d+),"Price":"[^"]*","ClassName":"([^"]*)"', page):
+        counts[g] = max(counts.get(g, 0), int(n))
+    return counts
+
+
+PHANTOM_MIN = 10        # 이 시간 넘게 그대로 남아 있는 좌석은 '살 수 없는 좌석'으로 기억
+PHANTOM_MAX_TOTAL = 4   # 남은 좌석이 이 수 이하인 매진 공연에만 적용
+PHANTOM_FORGET_MIN = 24 * 60
+
+
+def real_seats(st, counts, now):
+    """기억해 둔 '살 수 없는 좌석' 수를 뺀 실제 남은 좌석 {등급: 수}.
+    NOL 앱에서도 매진인데 공개 잔여석 수에 10~30분씩 남아 있는 좌석이 있어(결제 대기·특수석 추정) 알림에서 제외."""
+    phantom = st.setdefault("phantom", {})   # 등급 → {"n": 수, "seen": 마지막으로 본 시각}
+    since = st.setdefault("since", {})       # 등급 → 좌석이 계속 보이기 시작한 시각
+    sold_out_like = sum(counts.values()) <= PHANTOM_MAX_TOTAL
+    real = {}
+    for g, n in counts.items():
+        p = phantom.get(g)
+        if n > 0:
+            since.setdefault(g, now.isoformat())
+            if p:
+                p["seen"] = now.isoformat()
+            if sold_out_like and minutes_since(since[g], now) >= PHANTOM_MIN and (not p or n > p["n"]):
+                phantom[g] = p = {"n": n, "seen": now.isoformat()}
+                print(f"  '{g}' {n}석이 {PHANTOM_MIN}분 넘게 남아 있음 → 살 수 없는 좌석으로 기억")
+        else:
+            since.pop(g, None)
+        if n > (p["n"] if p else 0):
+            real[g] = n - (p["n"] if p else 0)
+    for g in [g for g, p in phantom.items() if minutes_since(p["seen"], now) > PHANTOM_FORGET_MIN]:
+        del phantom[g]
+    return real
+
+
+def check_sales(items, state, now, recheck=(), seed=None):
     quiet = is_quiet(now)
     for it in items:
         st = state.setdefault(it["id"], {"lastState": None, "failCount": 0, "openNoticeSent": False})
+        if "phantom" not in st and (seed or {}).get(it["id"]):   # rules.json phantomSeed: 기록으로 확인된 좌석
+            st["phantom"] = {g: {"n": n, "seen": now.isoformat()} for g, n in seed[it["id"]].items()}
         st.setdefault("phonePending", False)
         st.setdefault("everAvailable", st.get("lastState") == "available")
         concert = parse_dt(it.get("concertDate"))
@@ -454,7 +497,14 @@ def check_sales(items, state, now, recheck=()):
                 notify(f"[클라우드] 확인 실패: {it['title']}", "3회 연속 실패. 해외 서버 접속이 차단됐을 수 있어요 (PC 감시는 별개).", it["url"])
             continue
 
+        real = {}
+
         def judge(p):
+            nonlocal real
+            counts = seat_counts(p)
+            if counts:   # 등급별 좌석 수가 있으면 '살 수 없는 좌석'(오래 남아 있는 좌석)을 빼고 판단
+                real = real_seats(st, counts, datetime.now(KST))
+                return "available" if real else "soldout"
             if re.search(it["availablePattern"], p):
                 return "available"
             if it.get("soldOutPattern") and re.search(it["soldOutPattern"], p):
@@ -472,7 +522,7 @@ def check_sales(items, state, now, recheck=()):
                     print(f"일시적 잔여석(20초 내 소진) - 알림 생략: {it['title']}")
             except Exception:
                 cur = "unknown"
-        seats = seat_summary(page)
+        seats = ", ".join(f"{g} {n}석" for g, n in real.items()) if real else seat_summary(page)
 
         if cur == "unknown":
             st["failCount"] += 1
@@ -535,7 +585,7 @@ def main():
     items = manual + [w for w in auto if w.get("checkUrl") not in manual_urls]
     attach_sac(items, state)
     check_sac_open(items, state)
-    check_sales(items, state, now, tuple(rules.get("recheckKeywords", [])))
+    check_sales(items, state, now, tuple(rules.get("recheckKeywords", [])), rules.get("phantomSeed"))
 
     ids = {it["id"] for it in manual + auto}
     state = {k: v for k, v in state.items() if k in ids or k.startswith("_")}
@@ -555,7 +605,7 @@ def main():
         print(f"-- 집중 감시 {now:%H:%M}")
         _sac_cache.clear()
         check_sac_open(focus, state)
-        check_sales(focus, state, now, tuple(rules.get("recheckKeywords", [])))
+        check_sales(focus, state, now, tuple(rules.get("recheckKeywords", [])), rules.get("phantomSeed"))
         save("state.json", state)
 
 
