@@ -65,7 +65,7 @@
       }
     },
     "lastScan": "2026-10-15T09:50:57.465672+09:00",
-    "lastTitle": "2026-10-15T13:26:25.606725+09:00",
+    "lastTitle": "2026-10-15T14:38:32.237467+09:00",
     "pending": [],
     "seededA": true,
     "seededB": true,
@@ -701,7 +701,7 @@
   "a297168i1": {
     "everAvailable": true,
     "failCount": 0,
-    "lastState": "soldout",
+    "lastState": "available",
     "openNoticeSent": false,
     "phonePending": false
   },
