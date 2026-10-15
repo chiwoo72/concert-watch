@@ -20,22 +20,24 @@ concurrency:
 jobs:
   watch:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
 
       - name: 감시
         env:
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          KOPIS_KEY: ${{ secrets.KOPIS_KEY }}
           TEST_NOTIFY: ${{ inputs.test_notify }}
         run: python3 watch.py
 
       - name: 상태 저장
         run: |
-          if ! git diff --quiet -- state.json; then
+          if ! git diff --quiet -- state.json auto.json; then
             git config user.name "concert-watch-bot"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add state.json
+            git add state.json auto.json
             git commit -m "상태 갱신 $(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M')"
+            git pull --rebase --autostash
             git push
           fi
