@@ -437,6 +437,20 @@ def main():
     save("state.json", state)
     save("auto.json", sorted(auto, key=lambda w: w["id"]))
 
+    # 집중 감시(rules.json focusKeywords, 예: 임윤찬): 예약 실행 간격이 30~40분이라
+    # 한 번 실행되면 LOOP_MINUTES 동안 머물며 focusIntervalMin(5분)마다 해당 공연만 다시 확인
+    loop_min = int(os.environ.get("LOOP_MINUTES") or 0)
+    focus_kw = tuple(rules.get("focusKeywords", []))
+    focus = [it for it in items if it.get("keyword") in focus_kw]
+    step = 60 * rules.get("focusIntervalMin", 5)
+    deadline = time.time() + loop_min * 60
+    while focus and time.time() + step < deadline:
+        time.sleep(step)
+        now = datetime.now(KST)
+        print(f"-- 집중 감시 {now:%H:%M}")
+        check_sales(focus, state, now, tuple(rules.get("recheckKeywords", [])))
+        save("state.json", state)
+
 
 if __name__ == "__main__":
     main()

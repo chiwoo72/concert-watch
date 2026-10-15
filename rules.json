@@ -6,6 +6,8 @@
   "qty": 1,
   "instant": true,
   "recheckKeywords": ["임윤찬"],
+  "focusKeywords": ["임윤찬"],
+  "focusIntervalMin": 5,
   "orchestraAreas": ["서울"],
   "orchestraVenues": ["부천아트센터", "아트센터 인천"],
   "famousOrchestras": [

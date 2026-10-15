@@ -20,7 +20,7 @@ concurrency:
 jobs:
   watch:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 55
     steps:
       - uses: actions/checkout@v4
 
@@ -29,6 +29,8 @@ jobs:
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
           KOPIS_KEY: ${{ secrets.KOPIS_KEY }}
           TEST_NOTIFY: ${{ inputs.test_notify }}
+          # 예약 실행이면 40분 동안 머물며 임윤찬 공연을 5분마다 확인 (수동 실행은 1회만)
+          LOOP_MINUTES: ${{ github.event_name == 'schedule' && '40' || '0' }}
         run: python3 watch.py
 
       - name: 상태 저장
