@@ -2,21 +2,25 @@
   "w2d16": {
     "failCount": 0,
     "lastState": "soldout",
-    "openNoticeSent": false
+    "openNoticeSent": false,
+    "phonePending": false
   },
   "wc4a1": {
     "failCount": 0,
     "lastState": "soldout",
-    "openNoticeSent": false
+    "openNoticeSent": false,
+    "phonePending": false
   },
   "wc5a1": {
     "failCount": 0,
     "lastState": "soldout",
-    "openNoticeSent": false
+    "openNoticeSent": false,
+    "phonePending": false
   },
   "wcb16": {
     "failCount": 0,
     "lastState": "soldout",
-    "openNoticeSent": false
+    "openNoticeSent": false,
+    "phonePending": false
   }
 }
