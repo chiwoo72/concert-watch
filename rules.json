@@ -5,6 +5,7 @@
   "limit": 10000000,
   "qty": 1,
   "instant": true,
+  "recheckKeywords": ["임윤찬"],
   "orchestraAreas": ["서울"],
   "orchestraVenues": ["부천아트센터", "아트센터 인천"],
   "famousOrchestras": [

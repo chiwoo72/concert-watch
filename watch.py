@@ -330,7 +330,7 @@ def seat_summary(page):
     return ", ".join(seats)
 
 
-def check_sales(items, state, now):
+def check_sales(items, state, now, recheck=()):
     quiet = is_quiet(now)
     for it in items:
         st = state.setdefault(it["id"], {"lastState": None, "failCount": 0, "openNoticeSent": False})
@@ -369,8 +369,8 @@ def check_sales(items, state, now):
             return "unknown"
 
         cur = judge(page)
-        # 새로 잔여석이 보이면 20초 뒤 재확인 — 결제 대기 좌석이 잠깐 풀렸다 바로 팔리는 경우는 알리지 않음
-        if cur == "available" and st["lastState"] != "available":
+        # 재확인 대상(rules.json recheckKeywords)은 새 잔여석을 20초 뒤 다시 확인 — 잠깐 풀렸다 바로 팔리는 좌석은 알리지 않음
+        if cur == "available" and st["lastState"] != "available" and it.get("keyword") in recheck:
             time.sleep(20)
             try:
                 page = fetch(it["checkUrl"])
@@ -430,7 +430,7 @@ def main():
     auto = [w for w in auto if not parse_dt(w.get("concertDate")) or now <= parse_dt(w["concertDate"]) + timedelta(days=1)]
     manual_urls = {w.get("checkUrl") for w in manual}
     items = manual + [w for w in auto if w.get("checkUrl") not in manual_urls]
-    check_sales(items, state, now)
+    check_sales(items, state, now, tuple(rules.get("recheckKeywords", [])))
 
     ids = {it["id"] for it in manual + auto}
     state = {k: v for k, v in state.items() if k in ids or k.startswith("_")}
