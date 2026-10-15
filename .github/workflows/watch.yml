@@ -26,6 +26,7 @@ jobs:
 
       - name: 감시
         env:
+          PYTHONUNBUFFERED: "1"   # 로그 시각이 실제 확인 시각과 맞도록
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
           KOPIS_KEY: ${{ secrets.KOPIS_KEY }}
           TEST_NOTIFY: ${{ inputs.test_notify }}

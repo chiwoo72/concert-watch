@@ -420,7 +420,7 @@ def seat_summary(page):
     """남은 좌석 요약 ("C석 1석, B석 2석") — 인터파크 remainCnt / 롯데콘서트홀 BookableCount."""
     seats = [f"{n} {c}석" for n, c in re.findall(r'"seatGradeName":"([^"]*)","remainCnt":(\d+)', page) if int(c) > 0]
     seats += [f"{n} {c}석" for c, n in re.findall(r'"BookableCount":(\d+),"Price":"[^"]*","ClassName":"([^"]*)"', page) if int(c) > 0]
-    return ", ".join(seats)
+    return ", ".join(dict.fromkeys(seats))   # 롯데콘서트홀 페이지는 같은 회차 정보가 두 번 들어 있어 중복 제거
 
 
 def check_sales(items, state, now, recheck=()):
