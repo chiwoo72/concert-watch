@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: "*/5 * * * *"   # 5분마다 (GitHub 사정으로 10~30분 늦어질 수 있음)
   workflow_dispatch:         # Actions 탭에서 수동 실행
+    inputs:
+      test_notify:
+        description: "휴대폰 테스트 알림만 보내기"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -22,6 +27,7 @@ jobs:
       - name: 감시
         env:
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          TEST_NOTIFY: ${{ inputs.test_notify }}
         run: python3 watch.py
 
       - name: 상태 저장

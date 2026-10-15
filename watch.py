@@ -62,6 +62,9 @@ def parse_dt(s):
 
 
 def main():
+    if os.environ.get("TEST_NOTIFY") == "true":
+        notify("[클라우드] 테스트 알림", "GitHub Actions 감시가 휴대폰으로 알림을 보낼 수 있습니다.", "https://github.com/chiwoo72/concert-watch/actions")
+        return
     items = load("watch.json", [])
     state = load("state.json", {})
     now = datetime.now(KST)
