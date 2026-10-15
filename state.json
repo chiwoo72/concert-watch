@@ -64,8 +64,8 @@
         "tier": "A"
       }
     },
-    "lastScan": "2026-10-15T09:50:57.465672+09:00",
-    "lastTitle": "2026-10-15T14:38:32.237467+09:00",
+    "lastScan": "2026-10-15T15:53:08.245915+09:00",
+    "lastTitle": "2026-10-15T15:53:08.245915+09:00",
     "pending": [],
     "seededA": true,
     "seededB": true,
@@ -681,7 +681,24 @@
       "PF303368": "2026.10.20",
       "PF303369": "2026.11.15",
       "PF303372": "2026.12.25",
-      "PF303378": "2026.11.10"
+      "PF303378": "2026.11.10",
+      "PF303381": "2026.12.27",
+      "PF303383": "2026.11.01",
+      "PF303384": "2026.11.11",
+      "PF303390": "2026.11.01",
+      "PF303400": "2026.10.27",
+      "PF303416": "2026.11.07",
+      "PF303424": "2026.10.26",
+      "PF303428": "2026.12.05",
+      "PF303430": "2026.10.21",
+      "PF303440": "2026.11.16",
+      "PF303448": "2026.11.26",
+      "PF303450": "2026.12.24",
+      "PF303451": "2026.12.05",
+      "PF303459": "2026.11.14",
+      "PF303460": "2026.12.26",
+      "PF303474": "2026.10.27",
+      "PF303482": "2026.11.12"
     }
   },
   "a294503i1": {
@@ -706,9 +723,9 @@
     "phonePending": false
   },
   "a297367i1": {
-    "everAvailable": false,
+    "everAvailable": true,
     "failCount": 0,
-    "lastState": "soldout",
+    "lastState": "available",
     "openNoticeSent": false,
     "phonePending": false
   },
@@ -741,14 +758,14 @@
     "phonePending": false
   },
   "wc5a1": {
-    "everAvailable": false,
+    "everAvailable": true,
     "failCount": 0,
     "lastState": "soldout",
     "openNoticeSent": false,
     "phonePending": false
   },
   "wcb16": {
-    "everAvailable": false,
+    "everAvailable": true,
     "failCount": 0,
     "lastState": "soldout",
     "openNoticeSent": false,
