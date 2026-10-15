@@ -323,6 +323,13 @@ def limit_note(it):
     return total > it["limit"], f"최저 {it['minPrice']:,}원 x {it.get('qty', 1)}매 = {total:,}원 (한도 {it['limit']:,}원)"
 
 
+def seat_summary(page):
+    """남은 좌석 요약 ("C석 1석, B석 2석") — 인터파크 remainCnt / 롯데콘서트홀 BookableCount."""
+    seats = [f"{n} {c}석" for n, c in re.findall(r'"seatGradeName":"([^"]*)","remainCnt":(\d+)', page) if int(c) > 0]
+    seats += [f"{n} {c}석" for c, n in re.findall(r'"BookableCount":(\d+),"Price":"[^"]*","ClassName":"([^"]*)"', page) if int(c) > 0]
+    return ", ".join(seats)
+
+
 def check_sales(items, state, now):
     quiet = is_quiet(now)
     for it in items:
@@ -354,12 +361,25 @@ def check_sales(items, state, now):
                 notify(f"[클라우드] 확인 실패: {it['title']}", "3회 연속 실패. 해외 서버 접속이 차단됐을 수 있어요 (PC 감시는 별개).", it["url"])
             continue
 
-        if re.search(it["availablePattern"], page):
-            cur = "available"
-        elif it.get("soldOutPattern") and re.search(it["soldOutPattern"], page):
-            cur = "soldout"
-        else:
-            cur = "unknown"
+        def judge(p):
+            if re.search(it["availablePattern"], p):
+                return "available"
+            if it.get("soldOutPattern") and re.search(it["soldOutPattern"], p):
+                return "soldout"
+            return "unknown"
+
+        cur = judge(page)
+        # 새로 잔여석이 보이면 20초 뒤 재확인 — 결제 대기 좌석이 잠깐 풀렸다 바로 팔리는 경우는 알리지 않음
+        if cur == "available" and st["lastState"] != "available":
+            time.sleep(20)
+            try:
+                page = fetch(it["checkUrl"])
+                cur = judge(page)
+                if cur != "available":
+                    print(f"일시적 잔여석(20초 내 소진) - 알림 생략: {it['title']}")
+            except Exception:
+                cur = "unknown"
+        seats = seat_summary(page)
 
         if cur == "unknown":
             st["failCount"] += 1
@@ -373,12 +393,12 @@ def check_sales(items, state, now):
                 notify("[클라우드] 예매 가능하지만 한도 초과", f"{it['title']} · {note}", it["url"])
             else:
                 head = "취소표 발생!" if st["everAvailable"] else "예매 가능(오픈·잔여석)!"
-                if not notify(f"[클라우드] {head} {it['title']}", note, it["url"], it.get("instant", False)):
+                if not notify(f"[클라우드] {head} {it['title']}", f"남은 좌석: {seats}" if seats else note, it["url"], it.get("instant", False)):
                     st["phonePending"] = True   # 방해금지 시간 → 끝난 뒤 남아 있으면 알림
         # 방해금지 시간에 생긴 취소표가 끝난 뒤에도 남아 있으면 한 번 알림
         if st["phonePending"] and not quiet:
             if cur == "available":
-                notify(f"[클라우드] 새벽에 생긴 취소표, 아직 예매 가능 {it['title']}", note, it["url"], it.get("instant", False))
+                notify(f"[클라우드] 새벽에 생긴 취소표, 아직 예매 가능 {it['title']}", f"남은 좌석: {seats}" if seats else note, it["url"], it.get("instant", False))
             if cur != "unknown":
                 st["phonePending"] = False
         if cur == "soldout":
