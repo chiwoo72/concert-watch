@@ -13,6 +13,7 @@ import urllib.request
 from datetime import datetime, timedelta, timezone
 
 KST = timezone(timedelta(hours=9))
+QUIET = ((1, 30), (6, 40))   # 휴대폰 방해금지 시간 (한국시간 01:30 ~ 06:40)
 HERE = os.path.dirname(os.path.abspath(__file__))
 UA = "concert-watch/1.0 (personal ticket alert)"
 
@@ -32,11 +33,22 @@ def fetch(url):
         return res.read().decode("utf-8", errors="replace")
 
 
+def is_quiet(now=None):
+    t = (now or datetime.now(KST)).time()
+    if os.environ.get("CONCERT_TEST_KST"):   # 시험용 시각 지정
+        t = datetime.strptime(os.environ["CONCERT_TEST_KST"], "%H:%M").time()
+    (sh, sm), (eh, em) = QUIET
+    return (sh, sm) <= (t.hour, t.minute) < (eh, em)
+
+
 def notify(title, message, url=None, urgent=False):
     topic = os.environ.get("NTFY_TOPIC")
+    if is_quiet():
+        print(f"[방해금지 - 생략] {title} | {message}")
+        return False
     print(f"[알림] {title} | {message}")
     if not topic:
-        return
+        return True
     body = {"topic": topic, "title": title, "message": message,
             "priority": 5 if urgent else 3, "tags": ["cloud", "musical_note"]}
     if url:
@@ -48,6 +60,7 @@ def notify(title, message, url=None, urgent=False):
         urllib.request.urlopen(req, timeout=15).read()
     except Exception as e:  # 알림 실패가 감시 전체를 멈추지 않게
         print(f"ntfy 실패: {e}")
+    return True
 
 
 def limit_note(it):
@@ -68,9 +81,11 @@ def main():
     items = load("watch.json", [])
     state = load("state.json", {})
     now = datetime.now(KST)
+    quiet = is_quiet(now)
 
     for it in items:
         st = state.setdefault(it["id"], {"lastState": None, "failCount": 0, "openNoticeSent": False})
+        st.setdefault("phonePending", False)
         concert = parse_dt(it.get("concertDate"))
         if concert and now > concert + timedelta(days=1):
             continue
@@ -119,7 +134,16 @@ def main():
                 notify("[클라우드] 예매 가능하지만 한도 초과", f"{it['title']} · {note}", it["url"])
             else:
                 head = "취소표 발생!" if st["lastState"] == "soldout" else "예매 가능!"
-                notify(f"[클라우드] {head} {it['title']}", note, it["url"], it.get("instant", False))
+                if not notify(f"[클라우드] {head} {it['title']}", note, it["url"], it.get("instant", False)):
+                    st["phonePending"] = True   # 방해금지 시간 → 끝난 뒤 남아 있으면 알림
+        # 방해금지 시간에 생긴 취소표가 끝난 뒤에도 남아 있으면 한 번 알림
+        if st["phonePending"] and not quiet:
+            if cur == "available":
+                notify(f"[클라우드] 새벽에 생긴 취소표, 아직 예매 가능 {it['title']}", note, it["url"], it.get("instant", False))
+            if cur != "unknown":
+                st["phonePending"] = False
+        if cur == "soldout":
+            st["phonePending"] = False
         if cur != "unknown":
             st["lastState"] = cur
         print(f"{it['id']} {it['title']}: {cur}")
