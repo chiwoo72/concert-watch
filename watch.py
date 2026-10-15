@@ -64,6 +64,15 @@ def is_quiet(now=None):
     return (sh, sm) <= (t.hour, t.minute) < (eh, em)
 
 
+def app_link(url):
+    """인터파크(NOL) 상품이면 NOL 앱을 바로 여는 주소, 아니면 None."""
+    m = re.search(r"(?:GoodsCode=|/goods/|/ticket/products/)(\d{6,})", url or "")
+    if not m or not re.search(r"interpark|nol\.yanolja", url):
+        return None
+    web = f"https://nol.yanolja.com/ticket/products/{m.group(1)}"
+    return "nol-app://wv?url=" + urllib.parse.quote(web, safe="")
+
+
 def notify(title, message, url=None, urgent=False):
     """보냈으면 True, 방해금지 시간이라 생략했으면 False."""
     topic = os.environ.get("NTFY_TOPIC")
@@ -76,8 +85,9 @@ def notify(title, message, url=None, urgent=False):
     body = {"topic": topic, "title": title, "message": message[:3500],
             "priority": 5 if urgent else 3, "tags": ["cloud", "musical_note"]}
     if url:
-        body["click"] = url
-        body["actions"] = [{"action": "view", "label": "예매하기", "url": url}]
+        app = app_link(url)
+        body["click"] = app or url
+        body["actions"] = ([{"action": "view", "label": "앱으로 예매", "url": app}] if app else []) +                           [{"action": "view", "label": "웹으로 열기" if app else "예매하기", "url": url}]
     req = urllib.request.Request("https://ntfy.sh/", data=json.dumps(body).encode("utf-8"),
                                  headers={"Content-Type": "application/json"})
     try:
