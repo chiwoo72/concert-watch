@@ -507,6 +507,7 @@ def main():
     if os.environ.get("TEST_NOTIFY") == "true":
         notify("[클라우드] 테스트 알림", "GitHub Actions 감시가 휴대폰으로 알림을 보낼 수 있습니다.", "https://github.com/chiwoo72/concert-watch/actions")
         return
+    started = time.time()
     now = datetime.now(KST)
     rules = load("rules.json", {})
     state = load("state.json", {})
@@ -547,7 +548,7 @@ def main():
     focus_kw = tuple(rules.get("focusKeywords", []))
     focus = [it for it in items if it.get("keyword") in focus_kw]
     step = 60 * rules.get("focusIntervalMin", 5)
-    deadline = time.time() + loop_min * 60
+    deadline = started + loop_min * 60   # 실행 시작부터 계산 (워크플로 제한 55분 안에 끝나야 상태가 저장됨)
     while focus and time.time() + step < deadline:
         time.sleep(step)
         now = datetime.now(KST)
