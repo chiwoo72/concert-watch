@@ -43,20 +43,5 @@
         "qty":  1,
         "minPrice":  100000,
         "instant":  true
-    },
-    {
-        "id":  "wc4a1",
-        "keyword":  "임윤찬",
-        "title":  "[롯데 11/9] 필라델피아 \u0026 임윤찬 (롯데콘서트홀)",
-        "url":  "https://www.lotteconcerthall.com/product/performance/261223",
-        "checkUrl":  "https://www.lotteconcerthall.com/product/performance/261223",
-        "availablePattern":  "\"BookableCount\":[1-9]",
-        "soldOutPattern":  "\"IsSoldOut\":true",
-        "concertDate":  "2026-11-09 00:00",
-        "openAt":  null,
-        "limit":  10000000,
-        "qty":  1,
-        "minPrice":  100000,
-        "instant":  true
     }
 ]
