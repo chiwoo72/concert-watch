@@ -65,7 +65,7 @@
       }
     },
     "lastScan": "2026-10-16T05:49:23.155929+09:00",
-    "lastTitle": "2026-10-16T08:49:00.008828+09:00",
+    "lastTitle": "2026-10-16T10:01:16.454824+09:00",
     "pending": [],
     "seededA": true,
     "seededB": true,
@@ -714,69 +714,123 @@
     "failCount": 0,
     "lastState": "soldout",
     "openNoticeSent": false,
-    "phonePending": false
+    "phantom": {},
+    "phonePending": false,
+    "since": {}
   },
   "a294503l": {
     "everAvailable": true,
     "failCount": 0,
     "lastState": "available",
     "openNoticeSent": false,
-    "phonePending": false
+    "phantom": {},
+    "phonePending": false,
+    "since": {
+      "A석": "2026-10-16T10:01:32.949233+09:00",
+      "B석": "2026-10-16T10:01:32.949233+09:00",
+      "R석": "2026-10-16T10:01:32.949233+09:00",
+      "S석": "2026-10-16T10:01:32.949233+09:00",
+      "시야방해B": "2026-10-16T10:01:32.949233+09:00",
+      "시야방해R": "2026-10-16T10:01:32.949233+09:00",
+      "시야방해S": "2026-10-16T10:01:32.949233+09:00"
+    }
   },
   "a297168i1": {
     "everAvailable": true,
     "failCount": 0,
     "lastState": "available",
     "openNoticeSent": false,
-    "phonePending": false
+    "phantom": {},
+    "phonePending": false,
+    "since": {
+      "A석": "2026-10-16T10:01:33.199136+09:00",
+      "B석": "2026-10-16T10:01:33.199136+09:00",
+      "R석": "2026-10-16T10:01:33.199136+09:00",
+      "S석": "2026-10-16T10:01:33.199136+09:00"
+    }
   },
   "a297367i1": {
     "everAvailable": true,
     "failCount": 0,
     "lastState": "available",
     "openNoticeSent": false,
-    "phonePending": false
+    "phantom": {},
+    "phonePending": false,
+    "since": {
+      "S석": "2026-10-16T10:01:33.544413+09:00"
+    }
   },
   "a302483i1": {
     "everAvailable": false,
     "failCount": 0,
     "lastState": "soldout",
     "openNoticeSent": false,
-    "phonePending": false
+    "phantom": {},
+    "phonePending": false,
+    "since": {}
   },
   "a303047i1": {
     "everAvailable": true,
     "failCount": 0,
     "lastState": "available",
     "openNoticeSent": false,
-    "phonePending": false
+    "phantom": {},
+    "phonePending": false,
+    "since": {
+      "A석": "2026-10-16T10:01:34.075608+09:00",
+      "B석": "2026-10-16T10:01:34.075608+09:00",
+      "R석": "2026-10-16T10:01:34.075608+09:00",
+      "S석": "2026-10-16T10:01:34.075608+09:00"
+    }
   },
   "w2d16": {
     "everAvailable": false,
     "failCount": 0,
     "lastState": "soldout",
     "openNoticeSent": false,
-    "phonePending": false
+    "phantom": {},
+    "phonePending": false,
+    "since": {}
   },
   "wc4a1": {
     "everAvailable": true,
     "failCount": 0,
     "lastState": "soldout",
     "openNoticeSent": false,
-    "phonePending": false
+    "phantom": {},
+    "phonePending": false,
+    "since": {}
   },
   "wc5a1": {
     "everAvailable": true,
     "failCount": 0,
     "lastState": "soldout",
     "openNoticeSent": false,
-    "phonePending": false
+    "phantom": {
+      "A석": {
+        "n": 1,
+        "seen": "2026-10-16T10:01:16.454824+09:00"
+      },
+      "S석": {
+        "n": 2,
+        "seen": "2026-10-16T10:01:16.454824+09:00"
+      }
+    },
+    "phonePending": false,
+    "since": {}
   },
   "wcb16": {
     "everAvailable": true,
     "failCount": 0,
     "lastState": "soldout",
     "openNoticeSent": false,
-    "phonePending": false
+    "phantom": {
+      "A석": {
+        "n": 1,
+        "seen": "2026-10-16T10:01:16.454824+09:00"
+      }
+    },
+    "phonePending": false,
+    "since": {}
   }
 }
