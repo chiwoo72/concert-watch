@@ -12,6 +12,7 @@ import difflib
 import json
 import os
 import re
+import ssl
 import time
 import urllib.parse
 import urllib.request
@@ -22,6 +23,9 @@ KST = timezone(timedelta(hours=9))
 QUIET = ((1, 30), (6, 40))   # 휴대폰 방해금지 시간 (한국시간 01:30 ~ 06:40)
 HERE = os.path.dirname(os.path.abspath(__file__))
 UA = "concert-watch/1.0 (personal ticket alert)"
+# 인증서 검증은 하되 Python 3.13 의 엄격 모드(VERIFY_X509_STRICT)는 끔 — 부천아트센터 인증서가 이 모드에서만 거부됨
+SSL_CTX = ssl.create_default_context()
+SSL_CTX.verify_flags &= ~getattr(ssl, "VERIFY_X509_STRICT", 0)
 KOPIS = "http://www.kopis.or.kr/openApi/restful"
 NOL_REMAIN = "https://nol.yanolja.com/ticket/products/api/remaining-seats?goodsCode={}&playSeq={:03d}"
 
@@ -48,7 +52,7 @@ def save(name, obj):
 def fetch(url, retry=True):
     req = urllib.request.Request(url, headers={"User-Agent": UA})
     try:
-        with urllib.request.urlopen(req, timeout=20) as res:
+        with urllib.request.urlopen(req, timeout=20, context=SSL_CTX) as res:
             return res.read().decode("utf-8", errors="replace")
     except Exception:
         if not retry:
@@ -74,9 +78,9 @@ def app_link(url):
     return "nol-app://wv?url=" + urllib.parse.quote(web, safe="")
 
 
-def notify(title, message, url=None, urgent=False, sac=None):
+def notify(title, message, url=None, urgent=False, home=None, home_label=None):
     """보냈으면 True, 방해금지 시간이라 생략했으면 False.
-    sac(예술의전당 공연 페이지)가 있으면 그것을 기본 링크로, 예매처 앱은 보조 버튼으로."""
+    home(예술의전당·부천아트센터 공연 페이지)이 있으면 그 링크만, 없으면 NOL(인터파크) 앱 링크."""
     topic = os.environ.get("NTFY_TOPIC")
     if is_quiet():
         print(f"[방해금지 - 생략] {title} | {message}")
@@ -86,9 +90,9 @@ def notify(title, message, url=None, urgent=False, sac=None):
         return True
     body = {"topic": topic, "title": title, "message": message[:3500],
             "priority": 5 if urgent else 3, "tags": ["cloud", "musical_note"]}
-    if sac:   # 예술의전당 공연은 예술의전당에서만 예매 (사용자 요청) — 다른 예매처 링크는 넣지 않음
-        body["click"] = sac
-        body["actions"] = [{"action": "view", "label": "예술의전당 예매", "url": sac}]
+    if home:   # 예술의전당·부천아트센터 공연은 그 공연장에서만 예매 (사용자 요청) — 다른 예매처 링크는 넣지 않음
+        body["click"] = home
+        body["actions"] = [{"action": "view", "label": home_label or "공연장 예매", "url": home}]
     elif url:
         app = app_link(url)
         body["click"] = app or url
@@ -178,6 +182,28 @@ def interpark_play_seqs(code, multi_day):
     return seqs or [1]
 
 
+# ── 부천아트센터 (자체 잔여석 공개) ─────────────────────
+BAC_CAL = "https://www.bac.or.kr/product/ko/performance/{}/calendar/{}/{}"
+BAC_TIME = "https://www.bac.or.kr/product/ko/performance/time/{}"
+BAC_PAGE = "https://www.bac.or.kr/product/ko/performance/{}"
+
+
+def bac_time_ids(perf, date_from, date_to):
+    """부천아트센터 공연의 회차 TimeID 목록 (월별 달력 JSON 에서)."""
+    ids, y, m = [], date_from.year, date_from.month
+    while (y, m) <= (date_to.year, date_to.month):
+        try:
+            cal = json.loads(fetch(BAC_CAL.format(perf, y, m)))["Calendar"]
+            for week in cal["Weeks"]:
+                for day in week or []:
+                    for t in (day or {}).get("Times") or []:
+                        ids.append(t["TimeID"])
+        except Exception as e:
+            print(f"부천아트센터 달력 실패 {perf} {y}-{m}: {e}")
+        y, m = (y + 1, 1) if m == 12 else (y, m + 1)
+    return list(dict.fromkeys(ids))
+
+
 def build_watches(d, artist, rules):
     """공연 상세 → 판매 감시 항목들 + (감시 가능 예매처, 감시 불가 예매처)."""
     region = d.get("area", "")[:2]
@@ -191,6 +217,20 @@ def build_watches(d, artist, rules):
     }
     label = f"[{region} {date_from:%m/%d}] {d['prfnm']}"
     watches, ok, ng = [], [], []
+    # 예매 정책 (사용자 확정): 예술의전당 → 예술의전당, 부천아트센터 → 부천아트센터, 그 외 → NOL(인터파크)
+    bac = next((r["url"] for r in d["relates"] if "bac.or.kr/product" in r["url"]), None)
+    if "부천아트센터" in d.get("fcltynm", "") and bac:
+        perf = re.search(r"/performance/(\d+)", bac).group(1)
+        home = BAC_PAGE.format(perf)
+        tids = bac_time_ids(perf, date_from, date_to)
+        for k, tid in enumerate(tids, 1):
+            watches.append(base | {
+                "id": f"a{d['mt20id'][2:]}b{k}", "title": label + (" (부천아트센터" + (f" {k}회차)" if len(tids) > 1 else ")")),
+                "url": home, "checkUrl": BAC_TIME.format(tid), "home": home, "homeLabel": "부천아트센터 예매",
+                "availablePattern": '"BookableCount":[1-9]', "soldOutPattern": '"BookableCount":0'})
+        if tids:
+            return watches, ["부천아트센터"], []
+        base = base | {"home": home, "homeLabel": "부천아트센터 예매"}   # 회차가 아직 없으면 인터파크로 감지, 링크는 부천아트센터
     for rel in d["relates"]:
         url, site = rel["url"], rel["site"]
         code = interpark_code(url) if "interpark" in url or "nol.yanolja" in url else None
@@ -202,12 +242,7 @@ def build_watches(d, artist, rules):
                     "url": f"https://tickets.interpark.com/goods/{code}", "checkUrl": NOL_REMAIN.format(code, n),
                     "availablePattern": '"remainCnt":[1-9]', "soldOutPattern": '"remainSeat":\\['})
             ok.append("인터파크")
-        elif "lotteconcerthall.com/product/performance/" in url:
-            watches.append(base | {
-                "id": f"a{d['mt20id'][2:]}l", "title": label + " (롯데콘서트홀)", "url": url, "checkUrl": url,
-                "availablePattern": '"BookableCount":[1-9]', "soldOutPattern": '"IsSoldOut":true'})
-            ok.append("롯데콘서트홀")
-        else:
+        else:   # 롯데콘서트홀 자체 판매 등은 감시하지 않음 (그 외 공연은 NOL 에서 예매)
             ng.append(site or url)
     return watches, ok, ng
 
@@ -239,8 +274,12 @@ def discover(rules, state, auto, now):
         text = norm(d.get("prfnm")) + "|" + norm(d.get("prfcast"))
         artist = next((a for a in artists if norm(a) in text), None)
         when = f"{d.get('prfpdfrom')} {d.get('fcltynm')}"
-        first_url = d["relates"][0]["url"] if d["relates"] else \
-            f"https://www.kopis.or.kr/por/db/pblprfr/pblprfrView.do?menuId=MNU_00020&mt20Id={pid}"
+        nol = next((r["url"] for r in d["relates"] if interpark_code(r["url"]) and ("interpark" in r["url"] or "nol.yanolja" in r["url"])), None)
+        bac = next((r["url"] for r in d["relates"] if "bac.or.kr/product" in r["url"]), None)
+        first_url = nol or (d["relates"][0]["url"] if d["relates"] else
+                            f"https://www.kopis.or.kr/por/db/pblprfr/pblprfrView.do?menuId=MNU_00020&mt20Id={pid}")
+        if "부천아트센터" in d.get("fcltynm", "") and bac:   # 부천아트센터 공연은 부천아트센터 페이지로
+            first_url = bac
         if "예술의전당" in d.get("fcltynm", ""):   # 아내가 예매하는 예술의전당 페이지로 연결
             m = sac_match(d.get("prfpdfrom", ""), d.get("prfnm", ""), artist)
             first_url = SAC_SCHEDULE   # 공연 페이지를 못 찾아도 다른 예매처로 보내지 않음
@@ -343,7 +382,7 @@ def sac_month(year, month):
                                        "searchLastDay": last, "CATEGORY_PRIMARY": 2}).encode()
         req = urllib.request.Request(SAC_LIST, data=data, headers={"User-Agent": UA})
         try:
-            with urllib.request.urlopen(req, timeout=30) as res:
+            with urllib.request.urlopen(req, timeout=30, context=SSL_CTX) as res:
                 days = json.loads(res.read().decode("utf-8"))
             _sac_cache[key] = [p for v in days.values() if isinstance(v, list) for p in v if isinstance(p, dict)]
         except Exception as e:
@@ -387,7 +426,8 @@ def attach_sac(items, state):
             else:
                 c = cache[it["id"]] = {"sn": m["SN"] if m else None, "checked": today}
         # 공연 페이지를 아직 못 찾았어도 예술의전당 공연이면 예술의전당 일정 페이지로 (다른 예매처로 보내지 않음)
-        it["sac"] = SAC_SHOW.format(c["sn"]) if c.get("sn") else SAC_SCHEDULE
+        it["home"] = SAC_SHOW.format(c["sn"]) if c.get("sn") else SAC_SCHEDULE
+        it["homeLabel"] = "예술의전당 예매"
 
 
 def check_sac_open(items, state):
@@ -405,7 +445,7 @@ def check_sac_open(items, state):
         if prev == "예정" and cur == "예매":
             notify(f"예술의전당 예매 오픈! {p['PROGRAM_SUBJECT']}",
                    f"{p['BEGIN_DATE']} {p.get('PROGRAM_PLAYTIME', '')} {p.get('PLACE_NAME', '')}",
-                   it.get("url"), it.get("instant", False), sac=SAC_SHOW.format(sn))
+                   it.get("url"), it.get("instant", False), home=SAC_SHOW.format(sn), home_label="예술의전당 예매")
         seen[str(sn)] = cur
 
 
@@ -484,7 +524,7 @@ def check_sales(items, state, now, recheck=(), seed=None):
             if over:
                 notify("[클라우드] 한도 초과 - 오픈 알림 생략", f"{it['title']} · {note}")
             else:
-                notify(f"[클라우드] 곧 예매 오픈 {open_at:%H:%M}", f"{it['title']} · {note}", it["url"], it.get("instant", False), it.get("sac"))
+                notify(f"[클라우드] 곧 예매 오픈 {open_at:%H:%M}", f"{it['title']} · {note}", it["url"], it.get("instant", False), it.get("home"), it.get("homeLabel"))
 
         if not it.get("availablePattern"):
             continue
@@ -536,12 +576,12 @@ def check_sales(items, state, now, recheck=(), seed=None):
                 notify("[클라우드] 예매 가능하지만 한도 초과", f"{it['title']} · {note}", it["url"])
             else:
                 head = "취소표 발생!" if st["everAvailable"] else "예매 가능(오픈·잔여석)!"
-                if not notify(f"[클라우드] {head} {it['title']}", f"남은 좌석: {seats}" if seats else note, it["url"], it.get("instant", False), it.get("sac")):
+                if not notify(f"[클라우드] {head} {it['title']}", f"남은 좌석: {seats}" if seats else note, it["url"], it.get("instant", False), it.get("home"), it.get("homeLabel")):
                     st["phonePending"] = True   # 방해금지 시간 → 끝난 뒤 남아 있으면 알림
         # 방해금지 시간에 생긴 취소표가 끝난 뒤에도 남아 있으면 한 번 알림
         if st["phonePending"] and not quiet:
             if cur == "available":
-                notify(f"[클라우드] 새벽에 생긴 취소표, 아직 예매 가능 {it['title']}", f"남은 좌석: {seats}" if seats else note, it["url"], it.get("instant", False), it.get("sac"))
+                notify(f"[클라우드] 새벽에 생긴 취소표, 아직 예매 가능 {it['title']}", f"남은 좌석: {seats}" if seats else note, it["url"], it.get("instant", False), it.get("home"), it.get("homeLabel"))
             if cur != "unknown":
                 st["phonePending"] = False
         if cur == "soldout":
@@ -572,6 +612,7 @@ def main():
 
     # 지난 공연은 자동 목록에서 제거, 수동 감시와 같은 주소는 중복 확인하지 않음
     auto = [w for w in auto if not parse_dt(w.get("concertDate")) or now <= parse_dt(w["concertDate"]) + timedelta(days=1)]
+    auto = [w for w in auto if "lotteconcerthall.com" not in w.get("checkUrl", "")]   # 그 외 공연은 NOL 로만 감시
     manual_urls = {w.get("checkUrl") for w in manual}
     # 예전에 자동 등록된 항목은 공연장 정보가 없어 예술의전당 여부를 모름 → KOPIS 에서 한 번 채움
     if os.environ.get("KOPIS_KEY"):
