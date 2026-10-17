@@ -60,7 +60,7 @@
       }
     },
     "lastScan": "2026-10-17T13:05:36.469261+09:00",
-    "lastTitle": "2026-10-17T14:18:30.119899+09:00",
+    "lastTitle": "2026-10-17T16:42:22.147466+09:00",
     "pending": [],
     "seededA": true,
     "seededB": true,
@@ -737,7 +737,7 @@
     "phantom": {
       "S석": {
         "n": 1,
-        "seen": "2026-10-17T15:30:40.810160+09:00"
+        "seen": "2026-10-17T16:42:48.174939+09:00"
       }
     },
     "phonePending": false,
@@ -782,12 +782,7 @@
     "failCount": 0,
     "lastState": "soldout",
     "openNoticeSent": false,
-    "phantom": {
-      "A석": {
-        "n": 1,
-        "seen": "2026-10-16T16:07:21.347906+09:00"
-      }
-    },
+    "phantom": {},
     "phonePending": false,
     "since": {}
   },
