@@ -55,7 +55,7 @@
       }
     },
     "lastScan": "2026-10-19T14:56:39.225922+09:00",
-    "lastTitle": "2026-10-19T14:56:39.225922+09:00",
+    "lastTitle": "2026-10-19T16:33:27.867784+09:00",
     "pending": [],
     "seededA": true,
     "seededB": true,
@@ -713,7 +713,12 @@
     "failCount": 0,
     "lastState": "soldout",
     "openNoticeSent": false,
-    "phantom": {},
+    "phantom": {
+      "A석": {
+        "n": 2,
+        "seen": "2026-10-19T16:49:18.821404+09:00"
+      }
+    },
     "phonePending": false,
     "since": {}
   },
