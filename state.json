@@ -711,7 +711,7 @@
   "wc5a1": {
     "everAvailable": true,
     "failCount": 0,
-    "lastState": "available",
+    "lastState": "soldout",
     "openNoticeSent": false,
     "phantom": {
       "A석": {
@@ -720,9 +720,7 @@
       }
     },
     "phonePending": false,
-    "since": {
-      "R석": "2026-10-19T19:21:30.209289+09:00"
-    }
+    "since": {}
   },
   "wcb16": {
     "everAvailable": true,
