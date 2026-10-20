@@ -725,12 +725,7 @@
     "failCount": 0,
     "lastState": "soldout",
     "openNoticeSent": false,
-    "phantom": {
-      "A석": {
-        "n": 2,
-        "seen": "2026-10-19T16:49:18.821404+09:00"
-      }
-    },
+    "phantom": {},
     "phonePending": false,
     "since": {}
   },
