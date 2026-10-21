@@ -698,13 +698,11 @@
   "a302483i1": {
     "everAvailable": true,
     "failCount": 0,
-    "lastState": "available",
+    "lastState": "soldout",
     "openNoticeSent": false,
     "phantom": {},
     "phonePending": false,
-    "since": {
-      "전석": "2026-10-21T11:14:15.879724+09:00"
-    }
+    "since": {}
   },
   "a303047i1": {
     "everAvailable": true,
