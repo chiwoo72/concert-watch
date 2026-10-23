@@ -45,7 +45,7 @@
       }
     },
     "lastScan": "2026-10-23T09:30:01.029184+09:00",
-    "lastTitle": "2026-10-23T09:30:01.029184+09:00",
+    "lastTitle": "2026-10-23T10:43:32.012301+09:00",
     "pending": [],
     "seededA": true,
     "seededB": true,
@@ -730,13 +730,11 @@
   "wc5a1": {
     "everAvailable": true,
     "failCount": 0,
-    "lastState": "available",
+    "lastState": "soldout",
     "openNoticeSent": false,
     "phantom": {},
     "phonePending": false,
-    "since": {
-      "S석": "2026-10-23T10:01:15.476586+09:00"
-    }
+    "since": {}
   },
   "wcb16": {
     "everAvailable": true,
