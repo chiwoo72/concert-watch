@@ -45,7 +45,7 @@
       }
     },
     "lastScan": "2026-10-23T21:56:39.935663+09:00",
-    "lastTitle": "2026-10-23T21:56:39.935663+09:00",
+    "lastTitle": "2026-10-23T23:21:09.357519+09:00",
     "pending": [],
     "seededA": true,
     "seededB": true,
@@ -711,24 +711,6 @@
   "_sacState": {
     "74879": "종료",
     "76534": "예매"
-  },
-  "a294503i1": {
-    "everAvailable": false,
-    "failCount": 0,
-    "lastState": "soldout",
-    "openNoticeSent": false,
-    "phantom": {},
-    "phonePending": false,
-    "since": {}
-  },
-  "a302483i1": {
-    "everAvailable": true,
-    "failCount": 0,
-    "lastState": "soldout",
-    "openNoticeSent": false,
-    "phantom": {},
-    "phonePending": false,
-    "since": {}
   },
   "a303047i1": {
     "everAvailable": true,
