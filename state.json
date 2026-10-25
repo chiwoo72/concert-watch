@@ -40,7 +40,7 @@
       }
     },
     "lastScan": "2026-10-25T10:43:08.690009+09:00",
-    "lastTitle": "2026-10-25T14:19:20.276107+09:00",
+    "lastTitle": "2026-10-25T15:31:47.549281+09:00",
     "pending": [],
     "seededA": true,
     "seededB": true,
@@ -658,9 +658,7 @@
       }
     },
     "phonePending": false,
-    "since": {
-      "S석": "2026-10-16T10:01:34.075608+09:00"
-    }
+    "since": {}
   },
   "w2d16": {
     "everAvailable": false,
