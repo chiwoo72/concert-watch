@@ -36,7 +36,7 @@
       }
     },
     "lastScan": "2026-10-26T04:44:20.388821+09:00",
-    "lastTitle": "2026-10-26T08:20:48.007808+09:00",
+    "lastTitle": "2026-10-26T09:33:00.330783+09:00",
     "pending": [],
     "seededA": true,
     "seededB": true,
@@ -617,16 +617,20 @@
   "a303047i1": {
     "everAvailable": true,
     "failCount": 0,
-    "lastState": "soldout",
+    "lastState": "available",
     "openNoticeSent": false,
     "phantom": {
       "S석": {
         "n": 3,
-        "seen": "2026-10-25T14:19:39.410130+09:00"
+        "seen": "2026-10-26T09:33:22.188167+09:00"
       }
     },
     "phonePending": false,
-    "since": {}
+    "since": {
+      "A석": "2026-10-26T09:33:22.188167+09:00",
+      "R석": "2026-10-26T09:33:22.188167+09:00",
+      "S석": "2026-10-26T09:33:22.188167+09:00"
+    }
   },
   "w2d16": {
     "everAvailable": false,
