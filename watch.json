@@ -1,17 +1,3 @@
 [
-    {
-        "id":  "w2d16",
-        "keyword":  "임윤찬",
-        "title":  "[롯데 11/9] 필라델피아 \u0026 임윤찬 (인터파크)",
-        "url":  "https://tickets.interpark.com/goods/26013979",
-        "checkUrl":  "https://nol.yanolja.com/ticket/products/api/remaining-seats?goodsCode=26013979\u0026playSeq=001",
-        "availablePattern":  "\"remainCnt\":[1-9]",
-        "soldOutPattern":  "\"remainSeat\":\\[",
-        "concertDate":  "2026-11-09 00:00",
-        "openAt":  null,
-        "limit":  10000000,
-        "qty":  1,
-        "minPrice":  100000,
-        "instant":  true
-    }
+
 ]
