@@ -647,12 +647,16 @@
   "a303047i1": {
     "everAvailable": true,
     "failCount": 0,
-    "lastState": "available",
+    "lastState": "soldout",
     "openNoticeSent": false,
     "phantom": {
       "R석": {
         "n": 2,
         "seen": "2026-10-27T20:10:56.708795+09:00"
+      },
+      "S석": {
+        "n": 2,
+        "seen": "2026-10-28T01:03:23.894556+09:00"
       }
     },
     "phonePending": false,
@@ -672,13 +676,11 @@
   "wc5a1": {
     "everAvailable": true,
     "failCount": 0,
-    "lastState": "available",
+    "lastState": "soldout",
     "openNoticeSent": false,
     "phantom": {},
     "phonePending": false,
-    "since": {
-      "R석": "2026-10-28T00:43:09.327814+09:00"
-    }
+    "since": {}
   },
   "wcb16": {
     "everAvailable": true,
