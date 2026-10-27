@@ -288,13 +288,16 @@ def discover(rules, state, auto, now):
                 when += f" · 예술의전당 {m.get('SALE_STATE_CODE_NAME', '')}" + (
                     f"(오픈 {m['TICKET_OPEN_DATE']})" if m.get("TICKET_OPEN_DATE") else "")
         if artist:
-            watches, ok, ng = build_watches(d, artist, rules)
-            existing = {w["id"] for w in auto}
-            auto.extend(w for w in watches if w["id"] not in existing)
             known[pid] = {"tier": "A", "artist": artist, "end": d.get("prfpdto", "")}
-            sites = ("잔여석 감시: " + "·".join(dict.fromkeys(ok))) if ok else "잔여석 자동 감시 불가"
-            if ng:
-                sites += " / 직접 확인: " + "·".join(dict.fromkeys(ng))
+            if artist in rules.get("seatWatchExclude", []):   # 새 공연 알림만 (잔여석·취소표 알림 끔)
+                sites = "새 공연 알림만 (잔여석 알림 꺼짐)"
+            else:
+                watches, ok, ng = build_watches(d, artist, rules)
+                existing = {w["id"] for w in auto}
+                auto.extend(w for w in watches if w["id"] not in existing)
+                sites = ("잔여석 감시: " + "·".join(dict.fromkeys(ok))) if ok else "잔여석 자동 감시 불가"
+                if ng:
+                    sites += " / 직접 확인: " + "·".join(dict.fromkeys(ng))
             found_a.append((f"{d['prfnm']} ({when})", sites, first_url))
         elif d.get("visit") == "Y" and any(f in text for f in famous) and (
                 (d.get("area") or "").startswith(orch_areas) or any(v in norm(d.get("fcltynm")) for v in orch_venues)):
@@ -613,6 +616,10 @@ def main():
     # 지난 공연은 자동 목록에서 제거, 수동 감시와 같은 주소는 중복 확인하지 않음
     auto = [w for w in auto if not parse_dt(w.get("concertDate")) or now <= parse_dt(w["concertDate"]) + timedelta(days=1)]
     auto = [w for w in auto if "lotteconcerthall.com" not in w.get("checkUrl", "")]   # 그 외 공연은 NOL 로만 감시
+    # 잔여석 알림을 끈 연주자(rules.json seatWatchExclude, 예: 임윤찬 — 매진 공연 취소표가 매번 헛걸음)는 판매 감시 제외
+    excluded = set(rules.get("seatWatchExclude", []))
+    auto = [w for w in auto if w.get("keyword") not in excluded]
+    manual = [w for w in manual if w.get("keyword") not in excluded]
     manual_urls = {w.get("checkUrl") for w in manual}
     # 예전에 자동 등록된 항목은 공연장 정보가 없어 예술의전당 여부를 모름 → KOPIS 에서 한 번 채움
     if os.environ.get("KOPIS_KEY"):
