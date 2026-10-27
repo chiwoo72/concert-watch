@@ -661,9 +661,7 @@
       }
     },
     "phonePending": false,
-    "since": {
-      "R석": "2026-10-27T08:00:52.967626+09:00"
-    }
+    "since": {}
   },
   "w2d16": {
     "everAvailable": false,
