@@ -41,7 +41,7 @@
       }
     },
     "lastScan": "2026-10-31T17:14:03.122554+09:00",
-    "lastTitle": "2026-10-31T19:55:37.332842+09:00",
+    "lastTitle": "2026-10-31T21:10:12.645433+09:00",
     "pending": [],
     "seededA": true,
     "seededB": true,
@@ -656,10 +656,12 @@
   "a303047i1": {
     "everAvailable": true,
     "failCount": 0,
-    "lastState": "soldout",
+    "lastState": "available",
     "openNoticeSent": false,
     "phantom": {},
     "phonePending": false,
-    "since": {}
+    "since": {
+      "B석": "2026-10-31T21:10:23.148609+09:00"
+    }
   }
 }
