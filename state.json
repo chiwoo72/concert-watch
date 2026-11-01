@@ -617,10 +617,12 @@
   "a303047i1": {
     "everAvailable": true,
     "failCount": 0,
-    "lastState": "soldout",
+    "lastState": "available",
     "openNoticeSent": false,
     "phantom": {},
     "phonePending": false,
-    "since": {}
+    "since": {
+      "R석": "2026-11-01T13:16:24.169797+09:00"
+    }
   }
 }
