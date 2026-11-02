@@ -41,7 +41,7 @@
       }
     },
     "lastScan": "2026-11-02T13:33:58.766234+09:00",
-    "lastTitle": "2026-11-02T15:40:43.907592+09:00",
+    "lastTitle": "2026-11-02T17:06:15.109827+09:00",
     "pending": [],
     "seededA": true,
     "seededB": true,
@@ -600,12 +600,7 @@
     "failCount": 0,
     "lastState": "soldout",
     "openNoticeSent": false,
-    "phantom": {
-      "R석": {
-        "n": 1,
-        "seen": "2026-11-01T15:52:22.580261+09:00"
-      }
-    },
+    "phantom": {},
     "phonePending": false,
     "since": {}
   }
