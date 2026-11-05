@@ -59,5 +59,26 @@
     "title": "[서울 01/24] 양인모의 베토벤 바이올린 소나타 전곡 Ⅲ (인터파크)",
     "url": "https://tickets.interpark.com/goods/26015556",
     "venue": "예술의전당 [서울] (콘서트홀)"
+  },
+  {
+    "availablePattern": "\"remainCnt\":[1-9]",
+    "checkUrl": "https://nol.yanolja.com/ticket/products/api/remaining-seats?goodsCode=26015554&playSeq=001",
+    "concertDate": "2027-01-19 23:00",
+    "home": "https://www.sac.or.kr/site/main/show/show_view?SN=82358",
+    "homeLabel": "예술의전당 예매",
+    "id": "a305601i1",
+    "instant": true,
+    "keyword": "양인모",
+    "kopisId": "PF305601",
+    "limit": 10000000,
+    "minPrice": 30000,
+    "openAt": null,
+    "qty": 1,
+    "sacTitle": "양인모의 베토벤 바이올린 소나타 전곡 Ⅰ",
+    "soldOutPattern": "\"remainSeat\":\\[",
+    "source": "auto",
+    "title": "[서울 01/19] 양인모의 베토벤 바이올린 소나타 전곡 Ⅰ (인터파크)",
+    "url": "https://tickets.interpark.com/goods/26015554",
+    "venue": "예술의전당 [서울] (콘서트홀)"
   }
 ]
