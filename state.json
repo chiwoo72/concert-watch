@@ -668,9 +668,14 @@
   "a303047i1": {
     "everAvailable": true,
     "failCount": 0,
-    "lastState": "available",
+    "lastState": "soldout",
     "openNoticeSent": false,
-    "phantom": {},
+    "phantom": {
+      "R석": {
+        "n": 1,
+        "seen": "2026-11-07T15:05:03.246758+09:00"
+      }
+    },
     "phonePending": false,
     "since": {
       "R석": "2026-11-07T14:15:36.004539+09:00"
