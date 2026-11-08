@@ -47,7 +47,7 @@
       }
     },
     "lastScan": "2026-11-08T19:49:29.150079+09:00",
-    "lastTitle": "2026-11-08T21:06:51.979989+09:00",
+    "lastTitle": "2026-11-08T22:49:17.013055+09:00",
     "pending": [],
     "seededA": true,
     "seededB": true,
@@ -636,7 +636,7 @@
   "a303047i1": {
     "everAvailable": true,
     "failCount": 0,
-    "lastState": "soldout",
+    "lastState": "available",
     "openNoticeSent": false,
     "phantom": {
       "R석": {
@@ -645,7 +645,9 @@
       }
     },
     "phonePending": false,
-    "since": {}
+    "since": {
+      "S석": "2026-11-08T22:49:30.265975+09:00"
+    }
   },
   "a305555i1": {
     "everAvailable": true,
