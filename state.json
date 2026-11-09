@@ -42,7 +42,7 @@
       }
     },
     "lastScan": "2026-11-09T21:33:30.725387+09:00",
-    "lastTitle": "2026-11-09T21:33:30.725387+09:00",
+    "lastTitle": "2026-11-09T22:52:23.097341+09:00",
     "pending": [],
     "seededA": true,
     "seededB": true,
@@ -649,11 +649,13 @@
   "a303047i1": {
     "everAvailable": true,
     "failCount": 0,
-    "lastState": "soldout",
+    "lastState": "available",
     "openNoticeSent": false,
     "phantom": {},
     "phonePending": false,
-    "since": {}
+    "since": {
+      "R석": "2026-11-09T22:52:41.071744+09:00"
+    }
   },
   "a305555i1": {
     "everAvailable": true,
@@ -678,8 +680,7 @@
     "phonePending": false,
     "since": {
       "A석": "2026-11-05T15:38:23.804261+09:00",
-      "B석": "2026-11-05T15:38:23.804261+09:00",
-      "S석": "2026-11-05T15:38:23.804261+09:00"
+      "B석": "2026-11-05T15:38:23.804261+09:00"
     }
   },
   "a305601i1": {
