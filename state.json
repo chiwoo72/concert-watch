@@ -652,11 +652,13 @@
   "a303047i1": {
     "everAvailable": true,
     "failCount": 0,
-    "lastState": "soldout",
+    "lastState": "available",
     "openNoticeSent": false,
     "phantom": {},
     "phonePending": false,
-    "since": {}
+    "since": {
+      "B석": "2026-11-10T17:42:49.668382+09:00"
+    }
   },
   "a305555i1": {
     "everAvailable": true,
