@@ -667,7 +667,7 @@
   "a305559i1": {
     "everAvailable": true,
     "failCount": 0,
-    "lastState": "available",
+    "lastState": "soldout",
     "openNoticeSent": false,
     "phantom": {
       "B석": {
@@ -679,10 +679,8 @@
         "seen": "2026-11-11T05:44:32.525577+09:00"
       }
     },
-    "phonePending": true,
-    "since": {
-      "A석": "2026-11-11T06:27:08.422245+09:00"
-    }
+    "phonePending": false,
+    "since": {}
   },
   "a305601i1": {
     "everAvailable": true,
