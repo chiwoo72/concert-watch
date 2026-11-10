@@ -37,7 +37,7 @@
       }
     },
     "lastScan": "2026-11-10T16:45:57.133815+09:00",
-    "lastTitle": "2026-11-10T21:28:26.046079+09:00",
+    "lastTitle": "2026-11-10T22:41:33.439623+09:00",
     "pending": [],
     "seededA": true,
     "seededB": true,
@@ -689,9 +689,7 @@
       }
     },
     "phonePending": false,
-    "since": {
-      "B석": "2026-11-05T15:38:23.804261+09:00"
-    }
+    "since": {}
   },
   "a305601i1": {
     "everAvailable": true,
