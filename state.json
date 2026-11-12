@@ -649,9 +649,14 @@
   "a303047i1": {
     "everAvailable": true,
     "failCount": 0,
-    "lastState": "available",
+    "lastState": "soldout",
     "openNoticeSent": false,
-    "phantom": {},
+    "phantom": {
+      "S석": {
+        "n": 1,
+        "seen": "2026-11-12T11:18:45.921728+09:00"
+      }
+    },
     "phonePending": false,
     "since": {
       "S석": "2026-11-12T10:08:55.877282+09:00"
@@ -679,11 +684,11 @@
     "phantom": {
       "B석": {
         "n": 3,
-        "seen": "2026-11-12T10:08:56.844154+09:00"
+        "seen": "2026-11-12T11:18:46.918179+09:00"
       },
       "S석": {
         "n": 2,
-        "seen": "2026-11-12T10:08:56.844154+09:00"
+        "seen": "2026-11-12T11:18:46.918179+09:00"
       }
     },
     "phonePending": false,
