@@ -682,9 +682,7 @@
       }
     },
     "phonePending": false,
-    "since": {
-      "S석": "2026-11-14T08:44:17.784321+09:00"
-    }
+    "since": {}
   },
   "a305601i1": {
     "everAvailable": true,
