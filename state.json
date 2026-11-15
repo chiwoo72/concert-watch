@@ -28,8 +28,8 @@
         "tier": "A"
       }
     },
-    "lastScan": "2026-11-15T23:26:35.472747+09:00",
-    "lastTitle": "2026-11-16T04:55:20.500138+09:00",
+    "lastScan": "2026-11-16T08:53:56.538459+09:00",
+    "lastTitle": "2026-11-16T08:53:56.538459+09:00",
     "pending": [],
     "seededA": true,
     "seededB": true,
@@ -609,16 +609,13 @@
   "a305559i1": {
     "everAvailable": true,
     "failCount": 0,
-    "lastState": "soldout",
+    "lastState": "available",
     "openNoticeSent": false,
-    "phantom": {
-      "S석": {
-        "n": 2,
-        "seen": "2026-11-15T05:34:31.739433+09:00"
-      }
-    },
+    "phantom": {},
     "phonePending": false,
-    "since": {}
+    "since": {
+      "A석": "2026-11-16T08:54:40.580023+09:00"
+    }
   },
   "a305601i1": {
     "everAvailable": true,
