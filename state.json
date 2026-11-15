@@ -28,8 +28,8 @@
         "tier": "A"
       }
     },
-    "lastScan": "2026-11-15T09:15:34.197913+09:00",
-    "lastTitle": "2026-11-15T09:15:34.197913+09:00",
+    "lastScan": "2026-11-15T15:50:05.820439+09:00",
+    "lastTitle": "2026-11-15T15:50:05.820439+09:00",
     "pending": [],
     "seededA": true,
     "seededB": true,
@@ -608,13 +608,11 @@
   "a303047i1": {
     "everAvailable": true,
     "failCount": 0,
-    "lastState": "available",
+    "lastState": "soldout",
     "openNoticeSent": false,
     "phantom": {},
     "phonePending": false,
-    "since": {
-      "S석": "2026-11-15T09:16:07.285497+09:00"
-    }
+    "since": {}
   },
   "a305555i1": {
     "everAvailable": true,
@@ -633,7 +631,7 @@
   "a305559i1": {
     "everAvailable": true,
     "failCount": 0,
-    "lastState": "available",
+    "lastState": "soldout",
     "openNoticeSent": false,
     "phantom": {
       "S석": {
@@ -642,9 +640,7 @@
       }
     },
     "phonePending": false,
-    "since": {
-      "B석": "2026-11-15T09:16:08.746353+09:00"
-    }
+    "since": {}
   },
   "a305601i1": {
     "everAvailable": true,
