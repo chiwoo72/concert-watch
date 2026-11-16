@@ -29,7 +29,7 @@
       }
     },
     "lastScan": "2026-11-16T08:53:56.538459+09:00",
-    "lastTitle": "2026-11-16T08:53:56.538459+09:00",
+    "lastTitle": "2026-11-16T14:29:15.290343+09:00",
     "pending": [],
     "seededA": true,
     "seededB": true,
@@ -609,13 +609,11 @@
   "a305559i1": {
     "everAvailable": true,
     "failCount": 0,
-    "lastState": "available",
+    "lastState": "soldout",
     "openNoticeSent": false,
     "phantom": {},
     "phonePending": false,
-    "since": {
-      "A석": "2026-11-16T08:54:40.580023+09:00"
-    }
+    "since": {}
   },
   "a305601i1": {
     "everAvailable": true,
