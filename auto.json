@@ -80,5 +80,24 @@
     "title": "[서울 01/19] 양인모의 베토벤 바이올린 소나타 전곡 Ⅰ (인터파크)",
     "url": "https://tickets.interpark.com/goods/26015554",
     "venue": "예술의전당 [서울] (콘서트홀)"
+  },
+  {
+    "availablePattern": "\"remainCnt\":[1-9]",
+    "checkUrl": "https://nol.yanolja.com/ticket/products/api/remaining-seats?goodsCode=26016459&playSeq=001",
+    "concertDate": "2026-12-07 23:00",
+    "id": "a306756i1",
+    "instant": true,
+    "keyword": "손열음",
+    "kopisId": "PF306756",
+    "limit": 10000000,
+    "minPrice": 60000,
+    "openAt": null,
+    "qty": 1,
+    "sacTitle": "Schubert Abend #6 박종해 슈베르트의 밤",
+    "soldOutPattern": "\"remainSeat\":\\[",
+    "source": "auto",
+    "title": "[서울 12/07] Schubert Abend #6 박종해 슈베르트의 밤 (인터파크)",
+    "url": "https://tickets.interpark.com/goods/26016459",
+    "venue": "크레디아 클래식 클럽 (STUDIO (B1) )"
   }
 ]
