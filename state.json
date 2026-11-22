@@ -33,8 +33,8 @@
         "tier": "A"
       }
     },
-    "lastScan": "2026-11-22T15:31:19.709344+09:00",
-    "lastTitle": "2026-11-22T15:31:19.709344+09:00",
+    "lastScan": "2026-11-22T23:52:01.582011+09:00",
+    "lastTitle": "2026-11-22T23:52:01.582011+09:00",
     "pending": [],
     "seededA": true,
     "seededB": true,
@@ -607,7 +607,7 @@
   "a303047i1": {
     "everAvailable": true,
     "failCount": 0,
-    "lastState": "available",
+    "lastState": "soldout",
     "openNoticeSent": false,
     "phantom": {
       "A석": {
@@ -620,9 +620,7 @@
       }
     },
     "phonePending": false,
-    "since": {
-      "B석": "2026-11-22T15:31:39.481810+09:00"
-    }
+    "since": {}
   },
   "a305555i1": {
     "everAvailable": true,
