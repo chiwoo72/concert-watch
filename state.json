@@ -607,13 +607,11 @@
   "a305559i1": {
     "everAvailable": true,
     "failCount": 0,
-    "lastState": "available",
+    "lastState": "soldout",
     "openNoticeSent": false,
     "phantom": {},
     "phonePending": false,
-    "since": {
-      "R석": "2026-11-23T10:29:09.062323+09:00"
-    }
+    "since": {}
   },
   "a305601i1": {
     "everAvailable": true,
