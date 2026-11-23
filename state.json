@@ -34,7 +34,7 @@
       }
     },
     "lastScan": "2026-11-23T05:55:03.205322+09:00",
-    "lastTitle": "2026-11-23T05:55:03.205322+09:00",
+    "lastTitle": "2026-11-23T10:28:54.920534+09:00",
     "pending": [],
     "seededA": true,
     "seededB": true,
@@ -586,16 +586,7 @@
     "failCount": 0,
     "lastState": "soldout",
     "openNoticeSent": false,
-    "phantom": {
-      "A석": {
-        "n": 1,
-        "seen": "2026-11-22T08:58:13.958582+09:00"
-      },
-      "S석": {
-        "n": 1,
-        "seen": "2026-11-22T08:58:13.958582+09:00"
-      }
-    },
+    "phantom": {},
     "phonePending": false,
     "since": {}
   },
@@ -616,11 +607,13 @@
   "a305559i1": {
     "everAvailable": true,
     "failCount": 0,
-    "lastState": "soldout",
+    "lastState": "available",
     "openNoticeSent": false,
     "phantom": {},
     "phonePending": false,
-    "since": {}
+    "since": {
+      "R석": "2026-11-23T10:29:09.062323+09:00"
+    }
   },
   "a305601i1": {
     "everAvailable": true,
