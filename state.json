@@ -584,11 +584,14 @@
   "a303047i1": {
     "everAvailable": true,
     "failCount": 0,
-    "lastState": "soldout",
+    "lastState": "available",
     "openNoticeSent": false,
     "phantom": {},
     "phonePending": false,
-    "since": {}
+    "since": {
+      "A석": "2026-11-24T14:36:04.195553+09:00",
+      "B석": "2026-11-24T14:36:04.195553+09:00"
+    }
   },
   "a305555i1": {
     "everAvailable": true,
