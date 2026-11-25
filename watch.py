@@ -298,7 +298,9 @@ def discover(rules, state, auto, now):
                 sites = ("잔여석 감시: " + "·".join(dict.fromkeys(ok))) if ok else "잔여석 자동 감시 불가"
                 if ng:
                     sites += " / 직접 확인: " + "·".join(dict.fromkeys(ng))
-            found_a.append((f"{d['prfnm']} ({when})", sites, first_url))
+            cdate = d.get("prfpdfrom", "").replace(".", "-")
+            if not any(v.get("concertDate") == cdate for v in state.get("_opens", {}).values()):
+                found_a.append((f"{d['prfnm']} ({when})", sites, first_url))
         elif rules.get("orchestraAlerts", True) and d.get("visit") == "Y" and any(f in text for f in famous) and (
                 (d.get("area") or "").startswith(orch_areas) or any(v in norm(d.get("fcltynm")) for v in orch_venues)):
             known[pid] = {"tier": "B", "end": d.get("prfpdto", "")}
@@ -450,6 +452,144 @@ def check_sac_open(items, state):
                    f"{p['BEGIN_DATE']} {p.get('PROGRAM_PLAYTIME', '')} {p.get('PLACE_NAME', '')}",
                    it.get("url"), it.get("instant", False), home=SAC_SHOW.format(sn), home_label="예술의전당 예매")
         seen[str(sn)] = cur
+
+
+# ── 티켓 오픈 일정 알림 (임윤찬 등 rules.json openWatch) ──────────────
+# 취소표는 사실상 잡을 수 없어(2026-10 확인) 오픈 위주로 전환. 오픈 일정을 미리 찾아 단계별로 알린다.
+NOL_UPCOMING = "https://nol.yanolja.com/ticket/display/api/upcoming"
+NOL_REGION_CODES = {"서울": "42001", "경기": "42010", "인천": "42011"}
+BAC_HOME = "https://www.bac.or.kr"
+
+
+def nol_upcoming(region_codes):
+    """NOL '오픈 예정' 공지 전체 (지역 필터, 페이지 끝까지)."""
+    out, cursor = [], None
+    for _ in range(20):
+        body = json.dumps({"sort": None, "cursor": cursor, "goods_region_codes": region_codes}).encode()
+        req = urllib.request.Request(NOL_UPCOMING, data=body, method="POST",
+                                     headers={"User-Agent": UA, "Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=30, context=SSL_CTX) as res:
+            d = json.loads(res.read().decode("utf-8"))
+        out += d.get("notices") or []
+        cursor = (d.get("summary") or {}).get("next_cursor")
+        if not cursor:
+            break
+    return out
+
+
+def venue_link(venue, concert_date, title, kw):
+    """예매 정책: 예술의전당 → 예술의전당, 부천아트센터 → 부천아트센터, 그 외 → None(NOL)."""
+    if "예술의전당" in venue:
+        m = sac_match(concert_date.replace("-", "."), title, kw) if concert_date else None
+        return (SAC_SHOW.format(m["SN"]) if m else SAC_SCHEDULE), "예술의전당 예매"
+    if "부천아트센터" in venue:
+        return BAC_HOME, "부천아트센터 예매"
+    return None, None
+
+
+def collect_opens(rules, now):
+    """오픈 예정 목록 [{key, kw, title, venue, open, timeKnown, kind, concertDate, url, home, homeLabel, discount}]."""
+    kws = rules.get("openWatch", [])
+    if not kws:
+        return []
+    found = []
+    # 1) NOL 오픈 예정 공지 — 제목·출연진에서 키워드 검색
+    try:
+        notices = nol_upcoming([NOL_REGION_CODES[r] for r in rules.get("openRegions", ["서울", "경기", "인천"])])
+    except Exception as e:
+        print(f"NOL 오픈 예정 실패: {e}")
+        notices = []
+    for n in notices:
+        text = norm(n.get("title")) + "|" + norm(n.get("casting_info")) + "|" + norm(n.get("goods_name"))
+        kw = next((k for k in kws if norm(k) in text), None)
+        if not kw:
+            continue
+        venue, cdate = n.get("venue_name") or "", n.get("goods_start_date") or ""
+        home, label = venue_link(venue, cdate, n.get("title", ""), kw)
+        code = n.get("goods_code")
+        for t in n.get("ticket_dates") or []:
+            kind = t.get("ticket_other_open_name") or t.get("ticket_open_type_name") or "티켓 오픈"
+            found.append({
+                "key": f"nol:{n['id']}:{t.get('ticket_date_id')}", "kw": kw, "title": n.get("title", ""),
+                "venue": venue, "open": datetime.fromisoformat(t["ticket_open_date"]).replace(tzinfo=KST),
+                "timeKnown": True, "kind": kind, "concertDate": cdate,
+                "url": f"https://tickets.interpark.com/goods/{code}" if code else "https://nol.yanolja.com/ticket/display/upcoming",
+                "home": home, "homeLabel": label,
+                "discount": "장애인 할인 있음" if "장애" in (n.get("goods_discount") or "") else ""})
+    # 2) 예술의전당 일정 (앞으로 12개월) — 오픈일이 더 일찍 공개되는 경우가 있음. 시각은 모르므로 날짜만
+    y, m = now.year, now.month
+    for _ in range(12):
+        for p in sac_month(y, m) or []:
+            subj = p.get("PROGRAM_SUBJECT", "")
+            kw = next((k for k in kws if norm(k) in norm(subj)), None)
+            od = p.get("TICKET_OPEN_DATE") or p.get("TICKET_OPEN_START_DT")
+            if not kw or not od:
+                continue
+            cdate = p.get("BEGIN_DATE", "").replace(".", "-")
+            if any(f["concertDate"] == cdate and "예술의전당" in f["venue"] for f in found):
+                continue   # NOL 공지에 이미 있음 (시각까지 알 수 있는 쪽 우선)
+            found.append({
+                "key": f"sac:{p['SN']}:{od}", "kw": kw, "title": subj, "venue": "예술의전당 " + p.get("PLACE_NAME", ""),
+                "open": datetime.strptime(od[:10], "%Y-%m-%d").replace(tzinfo=KST), "timeKnown": False,
+                "kind": "예술의전당 회원 선예매" if p.get("SAC_PRE_SALE_YN") == "Y" else "예술의전당 티켓 오픈",
+                "concertDate": cdate, "url": SAC_SHOW.format(p["SN"]),
+                "home": SAC_SHOW.format(p["SN"]), "homeLabel": "예술의전당 예매", "discount": ""})
+        y, m = (y + 1, 1) if m == 12 else (y, m + 1)
+    return found
+
+
+WEEKDAY = "월화수목금토일"
+
+
+def open_text(o):
+    t = o["open"]
+    when = f"{t:%m/%d}({WEEKDAY[t.weekday()]})" + (f" {t:%H:%M}" if o["timeKnown"] else "")
+    lines = [o["title"], f"오픈: {when} · {o['kind']}", f"공연: {o['concertDate']} · {o['venue']}"]
+    if o["discount"]:
+        lines.append(o["discount"])
+    return "\n".join(lines)
+
+
+def check_opens(rules, state, now):
+    """단계별 알림: 발견 → D-7 → D-1 → (시각 아는 경우) 10분 전 / (날짜만) 당일 아침. 각 단계 1회."""
+    st = state.setdefault("_opens", {})
+    pending_m10 = []
+    for o in collect_opens(rules, now):
+        rec = st.setdefault(o["key"], {"sent": []})
+        rec.update({"title": o["title"], "open": o["open"].isoformat(), "concertDate": o["concertDate"]})
+        left = (o["open"] - now).total_seconds() / 60
+        if left <= -30:
+            continue
+        stages = [("found", True), ("d7", left <= 7 * 1440), ("d1", left <= 1440)]
+        stages += [("m10", 0 < left <= 10)] if o["timeKnown"] else [("d0", left <= 0 and now.hour >= 8)]
+        due = [s for s, ok in stages if ok and s not in rec["sent"]]
+        if o["timeKnown"] and "m10" not in rec["sent"] and left > 10:
+            pending_m10.append((o["open"] - timedelta(minutes=10), o))
+        if not due:
+            continue
+        top = due[-1]   # 가장 임박한 단계 하나만 보냄 (발견+D-7+D-1 을 한꺼번에 보내지 않음)
+        days = max(0, int(left // 1440))
+        head = {"found": f"티켓 오픈 예정 ({days}일 남음)", "d7": f"D-{max(days, 1)} 티켓 오픈 예정", "d1": "내일 티켓 오픈",
+                "m10": "10분 뒤 티켓 오픈!", "d0": "오늘 티켓 오픈"}[top]
+        if notify(f"[{o['kw']}] {head}", open_text(o), o["url"], top in ("m10", "d0"), o["home"], o["homeLabel"]):
+            rec["sent"] += [s for s in due if s not in rec["sent"]]   # 방해금지로 못 보냈으면 다음 실행에 재시도
+    for k in [k for k, v in st.items() if minutes_since(v.get("open"), now) > 3 * 1440]:
+        del st[k]   # 오픈 3일 지난 기록 정리
+    return pending_m10
+
+
+def wait_for_m10(pending, state, started, limit_min=50):
+    """10분 전 알림 시각이 이번 실행 안(워크플로 제한 55분)에 오면 기다렸다가 정확한 시각에 보낸다."""
+    if not pending:
+        return
+    target, o = min(pending, key=lambda x: x[0])
+    wait = (target - datetime.now(KST)).total_seconds()
+    if 0 < wait and time.time() + wait < started + limit_min * 60:
+        print(f"10분 전 알림 대기: {o['title']} ({target:%H:%M})")
+        time.sleep(wait)
+        rec = state["_opens"][o["key"]]
+        if notify(f"[{o['kw']}] 10분 뒤 티켓 오픈!", open_text(o), o["url"], True, o["home"], o["homeLabel"]):
+            rec["sent"] += [s for s in ("found", "d7", "d1", "m10") if s not in rec["sent"]]
 
 
 # ── 판매 감시 ─────────────────────────────────────────
@@ -633,12 +773,19 @@ def main():
     items = manual + [w for w in auto if w.get("checkUrl") not in manual_urls]
     attach_sac(items, state)
     check_sac_open(items, state)
+    try:
+        pending_m10 = check_opens(rules, state, now)
+    except Exception as e:   # 오픈 일정 실패가 다른 감시를 막지 않게
+        print(f"오픈 일정 확인 실패: {e}")
+        pending_m10 = []
     check_sales(items, state, now, tuple(rules.get("recheckKeywords", [])), rules.get("phantomSeed"))
 
     ids = {it["id"] for it in manual + auto}
     state = {k: v for k, v in state.items() if k in ids or k.startswith("_")}
     save("state.json", state)
     save("auto.json", sorted(auto, key=lambda w: w["id"]))
+    wait_for_m10(pending_m10, state, started)
+    save("state.json", state)
 
     # 집중 감시(rules.json focusKeywords, 예: 임윤찬): 예약 실행 간격이 30~40분이라
     # 한 번 실행되면 LOOP_MINUTES 동안 머물며 focusIntervalMin(5분)마다 해당 공연만 다시 확인

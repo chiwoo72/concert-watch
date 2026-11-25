@@ -101,5 +101,13 @@
                              "손열음",
                              "양인모"
                          ],
-    "orchestraAlerts":  false
+    "orchestraAlerts":  false,
+    "openWatch":  [
+                      "임윤찬"
+                  ],
+    "openRegions":  [
+                        "서울",
+                        "경기",
+                        "인천"
+                    ]
 }
