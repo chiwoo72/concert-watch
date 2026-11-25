@@ -299,7 +299,7 @@ def discover(rules, state, auto, now):
                 if ng:
                     sites += " / 직접 확인: " + "·".join(dict.fromkeys(ng))
             found_a.append((f"{d['prfnm']} ({when})", sites, first_url))
-        elif d.get("visit") == "Y" and any(f in text for f in famous) and (
+        elif rules.get("orchestraAlerts", True) and d.get("visit") == "Y" and any(f in text for f in famous) and (
                 (d.get("area") or "").startswith(orch_areas) or any(v in norm(d.get("fcltynm")) for v in orch_venues)):
             known[pid] = {"tier": "B", "end": d.get("prfpdto", "")}
             found_b.append((f"{d['prfnm']} ({when})", first_url))
