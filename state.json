@@ -33,8 +33,8 @@
         "tier": "A"
       }
     },
-    "lastScan": "2026-11-25T01:25:36.380238+09:00",
-    "lastTitle": "2026-11-25T01:25:36.380238+09:00",
+    "lastScan": "2026-11-25T09:23:26.310373+09:00",
+    "lastTitle": "2026-11-25T09:23:26.310373+09:00",
     "pending": [],
     "seededA": true,
     "seededB": true,
@@ -570,6 +570,7 @@
       "PF307356": "2026.12.04"
     }
   },
+  "_opens": {},
   "_sac": {
     "a297168i1": {
       "checked": "2026-10-16",
@@ -598,60 +599,5 @@
     "80511": "예매",
     "80512": "예매",
     "82358": "예매"
-  },
-  "a303047i1": {
-    "everAvailable": true,
-    "failCount": 0,
-    "lastState": "soldout",
-    "openNoticeSent": false,
-    "phantom": {},
-    "phonePending": false,
-    "since": {}
-  },
-  "a305555i1": {
-    "everAvailable": true,
-    "failCount": 0,
-    "lastState": "available",
-    "openNoticeSent": false,
-    "phantom": {},
-    "phonePending": false,
-    "since": {
-      "A석": "2026-11-05T15:38:24.229289+09:00",
-      "B석": "2026-11-05T15:38:24.229289+09:00",
-      "R석": "2026-11-05T15:38:24.229289+09:00",
-      "S석": "2026-11-05T15:38:24.229289+09:00"
-    }
-  },
-  "a305559i1": {
-    "everAvailable": true,
-    "failCount": 0,
-    "lastState": "soldout",
-    "openNoticeSent": false,
-    "phantom": {},
-    "phonePending": false,
-    "since": {}
-  },
-  "a305601i1": {
-    "everAvailable": true,
-    "failCount": 0,
-    "lastState": "available",
-    "openNoticeSent": false,
-    "phantom": {},
-    "phonePending": false,
-    "since": {
-      "A석": "2026-11-05T18:59:35.671012+09:00",
-      "B석": "2026-11-05T18:59:35.671012+09:00",
-      "R석": "2026-11-05T18:59:35.671012+09:00",
-      "S석": "2026-11-05T18:59:35.671012+09:00"
-    }
-  },
-  "a306756i1": {
-    "everAvailable": false,
-    "failCount": 0,
-    "lastState": "soldout",
-    "openNoticeSent": false,
-    "phantom": {},
-    "phonePending": false,
-    "since": {}
   }
 }
